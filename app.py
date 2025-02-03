@@ -204,10 +204,10 @@ def create_expense_table_image(df, name, start_date):
     draw = ImageDraw.Draw(img)
     
     try:
-        # Linux/macOS用フォント設定
-        title_font = ImageFont.truetype('/usr/share/fonts/truetype/fonts-japanese-gothic.ttf', int(title_font_size * scale_factor))
-        header_font = ImageFont.truetype('/usr/share/fonts/truetype/fonts-japanese-gothic.ttf', int(header_font_size * scale_factor))
-        content_font = ImageFont.truetype('/usr/share/fonts/truetype/fonts-japanese-gothic.ttf', int(content_font_size * scale_factor))
+        # macOS用フォント設定
+        title_font = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc', int(title_font_size * scale_factor))
+        header_font = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc', int(header_font_size * scale_factor))
+        content_font = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc', int(content_font_size * scale_factor))
     except:
         try:
             # Windows用フォント設定
@@ -215,14 +215,8 @@ def create_expense_table_image(df, name, start_date):
             header_font = ImageFont.truetype('msgothic.ttc', int(header_font_size * scale_factor))
             content_font = ImageFont.truetype('msgothic.ttc', int(content_font_size * scale_factor))
         except:
-            try:
-                # macOS用フォント設定（代替）
-                title_font = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc', int(title_font_size * scale_factor))
-                header_font = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc', int(header_font_size * scale_factor))
-                content_font = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc', int(content_font_size * scale_factor))
-            except:
-                # フォールバック
-                title_font = header_font = content_font = ImageFont.load_default()
+            # フォールバック
+            title_font = header_font = content_font = ImageFont.load_default()
     
     def scale(x): return int(x * scale_factor)
     
