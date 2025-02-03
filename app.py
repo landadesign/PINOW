@@ -187,12 +187,12 @@ def format_number(val):
 
 def create_expense_table_image(df, name, start_date):
     # フォントとサイズの設定
-    title_font_size = 32  # タイトルを大きく
-    header_font_size = 16  # ヘッダーを読みやすく
-    content_font_size = 15  # 本文も少し大きく
+    title_font_size = 32
+    header_font_size = 16
+    content_font_size = 15
     padding = 50
     row_height = 55
-    col_widths = [90, 480, 110, 130, 110, 110]  # 経路欄をより広く
+    col_widths = [90, 480, 110, 130, 110, 110]
     
     # 画像サイズを大きくして高解像度に対応
     width = sum(col_widths) + padding * 2
@@ -231,7 +231,6 @@ def create_expense_table_image(df, name, start_date):
     
     # ヘッダー背景
     for header, width in zip(headers, col_widths):
-        # ヘッダーセルの背景
         draw.rectangle([x, y, x + scale(width), y + scale(row_height)], 
                       fill='#f5f5f5', outline='#666666', width=2)
         
@@ -248,7 +247,6 @@ def create_expense_table_image(df, name, start_date):
     for i, (_, row) in enumerate(df.iterrows()):
         x = scale(padding)
         for col_idx, (value, width) in enumerate(zip(row, col_widths)):
-            # セルの罫線
             draw.rectangle([x, y, x + scale(width), y + scale(row_height)], 
                          outline='#666666', width=2)
             
@@ -261,22 +259,20 @@ def create_expense_table_image(df, name, start_date):
                     line1 = '→'.join(words[:mid_point]) + '→'
                     line2 = '→'.join(words[mid_point:])
                     
-                    # 経路1行目
                     draw.text((x + scale(10), y + scale(5)), line1, 
                              fill='black', font=content_font)
-                    # 経路2行目
                     draw.text((x + scale(10), y + scale(row_height/2)), line2, 
                              fill='black', font=content_font)
                 else:
                     # 1行で収まる場合
-                    text_y = y + (scale(row_height) - content_font.getsize(text)[1]) / 2
+                    text_y = y + scale(row_height/2 - content_font_size/2)
                     draw.text((x + scale(10), text_y), text, 
                              fill='black', font=content_font)
             else:
                 # 数値列は右寄せ
                 text_width = content_font.getlength(text)
                 text_x = x + scale(width) - text_width - scale(10)
-                text_y = y + (scale(row_height) - content_font.getsize(text)[1]) / 2
+                text_y = y + scale(row_height/2 - content_font_size/2)
                 draw.text((text_x, text_y), text, fill='black', font=content_font)
             x += scale(width)
         y += scale(row_height)
