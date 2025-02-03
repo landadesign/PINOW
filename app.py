@@ -187,30 +187,38 @@ def format_number(val):
 
 def create_expense_table_image(df, name, start_date):
     # フォントとサイズの設定
-    title_font_size = 28  # タイトルフォントを少し大きく
-    content_font_size = 14  # 本文フォントも少し大きく
-    padding = 40
-    row_height = 50
-    col_widths = [80, 450, 100, 120, 100, 100]  # 列幅も調整
+    title_font_size = 32  # タイトルを大きく
+    header_font_size = 16  # ヘッダーを読みやすく
+    content_font_size = 15  # 本文も少し大きく
+    padding = 50
+    row_height = 55
+    col_widths = [90, 480, 110, 130, 110, 110]  # 経路欄をより広く
     
     # 画像サイズを大きくして高解像度に対応
     width = sum(col_widths) + padding * 2
     height = (len(df) + 3) * row_height + padding * 3
     
-    # 画像の作成（サイズを1.5倍に）
-    scale_factor = 1.5
+    # 画像の作成（サイズを2倍に）
+    scale_factor = 2
     img = Image.new('RGB', (int(width * scale_factor), int(height * scale_factor)), 'white')
     draw = ImageDraw.Draw(img)
     
     try:
+        # macOS用フォント設定
         title_font = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc', int(title_font_size * scale_factor))
+        header_font = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc', int(header_font_size * scale_factor))
         content_font = ImageFont.truetype('/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc', int(content_font_size * scale_factor))
     except:
-        title_font = content_font = ImageFont.load_default()
+        try:
+            # Windows用フォント設定
+            title_font = ImageFont.truetype('msgothic.ttc', int(title_font_size * scale_factor))
+            header_font = ImageFont.truetype('msgothic.ttc', int(header_font_size * scale_factor))
+            content_font = ImageFont.truetype('msgothic.ttc', int(content_font_size * scale_factor))
+        except:
+            # フォールバック
+            title_font = header_font = content_font = ImageFont.load_default()
     
-    # スケーリングを考慮した座標計算
-    def scale(x):
-        return int(x * scale_factor)
+    def scale(x): return int(x * scale_factor)
     
     # タイトルの描画
     title = f"{name}様　1月　交通費清算書"
@@ -223,13 +231,16 @@ def create_expense_table_image(df, name, start_date):
     
     # ヘッダー背景
     for header, width in zip(headers, col_widths):
-        draw.rectangle([x, y, x + scale(width), y + scale(row_height)], fill='#f0f0f0', outline='black')
+        # ヘッダーセルの背景
+        draw.rectangle([x, y, x + scale(width), y + scale(row_height)], 
+                      fill='#f5f5f5', outline='#666666', width=2)
+        
         lines = header.split('\n')
         for i, line in enumerate(lines):
-            text_width = content_font.getlength(line)
+            text_width = header_font.getlength(line)
             text_x = x + (scale(width) - text_width) / 2
             text_y = y + scale(5) + (i * scale(row_height - 10) / len(lines))
-            draw.text((text_x, text_y), line, fill='black', font=content_font)
+            draw.text((text_x, text_y), line, fill='black', font=header_font)
         x += scale(width)
     
     # データの描画
@@ -237,7 +248,10 @@ def create_expense_table_image(df, name, start_date):
     for i, (_, row) in enumerate(df.iterrows()):
         x = scale(padding)
         for col_idx, (value, width) in enumerate(zip(row, col_widths)):
-            draw.rectangle([x, y, x + scale(width), y + scale(row_height)], outline='black')
+            # セルの罫線
+            draw.rectangle([x, y, x + scale(width), y + scale(row_height)], 
+                         outline='#666666', width=2)
+            
             text = str(value) if pd.notna(value) else ''
             
             if col_idx == 1:  # 経路列
@@ -247,20 +261,30 @@ def create_expense_table_image(df, name, start_date):
                     line1 = '→'.join(words[:mid_point]) + '→'
                     line2 = '→'.join(words[mid_point:])
                     
-                    draw.text((x + scale(5), y + scale(5)), line1, fill='black', font=content_font)
-                    draw.text((x + scale(5), y + scale(row_height/2)), line2, fill='black', font=content_font)
+                    # 経路1行目
+                    draw.text((x + scale(10), y + scale(5)), line1, 
+                             fill='black', font=content_font)
+                    # 経路2行目
+                    draw.text((x + scale(10), y + scale(row_height/2)), line2, 
+                             fill='black', font=content_font)
                 else:
-                    draw.text((x + scale(5), y + scale((row_height - content_font_size)/2)), text, fill='black', font=content_font)
+                    # 1行で収まる場合
+                    text_y = y + (scale(row_height) - content_font.getsize(text)[1]) / 2
+                    draw.text((x + scale(10), text_y), text, 
+                             fill='black', font=content_font)
             else:
+                # 数値列は右寄せ
                 text_width = content_font.getlength(text)
-                text_x = x + scale(width) - text_width - scale(5)
-                draw.text((text_x, y + scale((row_height - content_font_size)/2)), text, fill='black', font=content_font)
+                text_x = x + scale(width) - text_width - scale(10)
+                text_y = y + (scale(row_height) - content_font.getsize(text)[1]) / 2
+                draw.text((text_x, text_y), text, fill='black', font=content_font)
             x += scale(width)
         y += scale(row_height)
     
     # 注釈の描画
     note = "※2025年1月分給与にて清算しました。"
-    draw.text((scale(padding), scale(height - row_height)), note, fill='black', font=content_font)
+    draw.text((scale(padding), scale(height - row_height)), note, 
+              fill='black', font=content_font)
     
     # 画像をバイト列に変換（200dpiで保存）
     img_byte_arr = io.BytesIO()
